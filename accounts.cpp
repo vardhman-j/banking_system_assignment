@@ -74,13 +74,16 @@ class account_base{
 
 class savings_account : public account_base{
     private:
-        map<string, int> atm_numbers;
+        
         const double interest_rate = 0.06;
         const double min_balance = 10000;
         double NRV = 100000;
         double daily_withdrawal_value = 0;
         int monthly_withdrawal_cnt = 0;
         map<long long, string> savings_atm;
+        map<string, int> unique_atm_numbers;
+        // 2 mappings exist because, savings_atm is acc number to atm_card_number
+        // atm_numbers is just to check uniqueness.
 
     protected:
 
@@ -94,19 +97,14 @@ class savings_account : public account_base{
     public:
 
         savings_account(int acc_num, double bal, User* usr, string date) : account_base("Savings", acc_num, bal, usr){
-            atm_numbers["0000000000000000"] = 0;
+            unique_atm_numbers[""] = 0;
             transactions.push_back({"+", to_string(bal), date, "Savings"});
-        }
-
-        void display() {
-            cout << "Savings account number: " << acc_number;
-            cout << "Savings Account Balance: " << balance << '\n';
-            generate_atm_details();
         }
         
         void interest(int months){
             balance += balance * (months * interest_rate / 12);
         }
+        
         
         void deposit(int amount, string date){
             if (transactions.size()){
@@ -116,6 +114,7 @@ class savings_account : public account_base{
             balance += amount;
             transactions.push_back({"+", to_string(amount), date, "Savings"});
         }
+
 
         void withdraw(int amount, string date){
             if (transactions.size()){
@@ -171,18 +170,16 @@ class savings_account : public account_base{
         }
 
         void generate_atm_details(){      // generateds and prints the ATM details.
-            string x;
-            
-            if (savings_atm.find(acc_number) != savings_atm.end()) return;
+            string x = "";
 
-            while(atm_numbers.find(atm_card_number) != atm_numbers.end()){
+            while(unique_atm_numbers.find(x) != unique_atm_numbers.end()){
                 x = "";
                 for(int i = 0; i<16; i++){
-                    int rnd = (rand() % 10) + 1;
+                    int rnd = (rand()%10);
                     x += ('0' + rnd);
                 }
-                atm_card_number = x;
             }
+            atm_card_number = x;
 
             for(int i = 0; i<3; i++){
                 int rnd = (rand() % 10) + 1;
@@ -190,15 +187,15 @@ class savings_account : public account_base{
             }
 
             string m; string y;
-            m = to_string('0' + ((rand()%12) + 1));
+            m = to_string(1 + ((rand()%12)));
             y = to_string(2030 + rand()%5);
 
-            if (m.size() == 1) atm_card_expiry =  '0' + m + '/' + y;
-            else atm_card_expiry = m + '/' + y;
+            if (m.size() == 1) m = ("0" + m);
+            
+            atm_card_expiry = m + '/' + y;
 
-            cout << "ATM Card details:\n" << "Card number: " << atm_card_number << '\n';
+            cout << "\nATM Card details:\n" << "Card number: " << atm_card_number << '\n';
             cout << "Card CVV: " << atm_card_cvv << "\nCard Expiry: " << atm_card_expiry << '\n';
-
             savings_atm[acc_number] = atm_card_number;
         }
 

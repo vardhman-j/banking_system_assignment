@@ -14,8 +14,6 @@ class bank_system{
 
         int customer_counter = 1;
         int account_counter = 1;
-
-        //A/C number -> ATM_card_number
         
         
         // simple linear account_number_generator
@@ -36,6 +34,12 @@ class bank_system{
                 savings_account* sav_account = new savings_account(acc_number, initial_deposit, user, date);
                 savings_accounts_list[acc_number] = (sav_account);
                 user_accounts[user_id].push_back({acc_number, "Savings"});
+
+                cout << "\nNew savings account created:\n";
+                cout << "User ID: " << user_id << '\n';
+                cout << "A/C number: " << acc_number << '\n';
+
+                sav_account->generate_atm_details();
             }
         }
 

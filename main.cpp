@@ -7,9 +7,10 @@ int main(){
     map_init();
     int choice;
     do {
-        cout << "1. Create Savings Account\n2. Create Current Account\n3. Create Loan Account\n4. Display Passbook\n5. Existing User Menu\n6. Exit.\nEnter your choice: ";
-        cin >> choice;
 
+        cout << "\n1. Create Savings Account\n2. Create Current Account\n3. Create Loan Account\n4. Display Passbook\n5. Existing User Menu\n6. Exit.\n\nEnter your choice: ";
+        cin >> choice;
+        cout << '\n';
         string name, email, phone, address;
         int age;
         double amount;
@@ -39,7 +40,9 @@ int main(){
                     }
                     user_id = s;
                 }
+                
                 bank.create_savings_account(name, email, phone, address, age, user_id, amount, date);
+                // cout << 
                 break;
 
             case 2:
@@ -110,19 +113,21 @@ int main(){
                     cout << "Enter Date: ";
                     cin >> date;
                     
-                    cout << "Deposited amount " << amount << " in A/C number " << acc_number << "\nUpdated ";
+                    cout << "Deposited amount " << amount << " in A/C number " << acc_number << ".\nUpdated ";
                     if (bank.savings_accounts_list.find(acc_number) != bank.savings_accounts_list.end()){
                         auto x = (bank.savings_accounts_list)[acc_number];
                         // account_base ptr = new account_base();
                         x->deposit(amount, date);
                         x->show_acc_det();
                     }
+
                     else if (bank.current_accounts_list.find(acc_number) != bank.current_accounts_list.end()){
                         auto x = (bank.current_accounts_list)[acc_number];
                         // account_base ptr = new account_base();
                         x->deposit(amount, date);
                         x->show_acc_det();
                     }
+
                     else{
                         auto x = (bank.loan_accounts_list)[acc_number];
                         // account_base ptr = new account_base();
