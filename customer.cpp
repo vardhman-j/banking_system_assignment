@@ -1,24 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-vector<int> map1(26, 0);
-
-void map_init(){
-    map1['a' - 97] = 1; 
-    for(int i = 1; i<26; i++){
-        map1[i] = 2*map1[i-1] + i;
-    }
-}
-
-string get_user_id(string name){
-    long long sum = 0;
-
-    for(char c : name){
-        sum += map1[((tolower(c))) - 'a'];
-    }
-    return to_string(sum);
-}
-
 string cur_date(){
     time_t cur_time = time(0);
     tm* ltm = localtime(&cur_time);
@@ -45,22 +27,29 @@ vector<string> date_split(string date){
 class User{
     protected:
         string email, address, phone_number;
-        int age;
     public:
+        int age;
         string user_id;
         string name;
+
+        
         // Constructor
         User(string n, string e, string ph_no, string add, int a, string uid){ // Constructor
             name = n; email = e; phone_number = ph_no;
             address = add; age = a; user_id = uid;
+            
         }
 
+        vector<string> get_details(User* u){
+            return {u->name, u->email, u->phone_number, u->address};
+        }
         void show_details(){
-            cout << "Personal details:" << '\n';
+            cout << "Personal details:\n";
             cout << "Name: " << name;
+            cout << "\nEmail: " << email;
             cout << "\nPhone Number: " << phone_number;
             cout << "\nUser ID: " << user_id;
-            cout << "\nAge: " << age;
+            cout << "\nAge: " << age << '\n';
         }
         
 };

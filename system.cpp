@@ -2,14 +2,34 @@
 using namespace std;
 #include "accounts.cpp"
 
+vector<int> map1(26, 0);
+
+void map_init(){
+    map1['a' - 97] = 1; 
+    for(int i = 1; i<26; i++){
+        map1[i] = 2*map1[i-1] + i;
+    }
+}
+
+string get_user_id(string name){
+    long long sum = 0;
+
+    for(char c : name){
+        sum += map1[((tolower(c))) - 'a'];
+    }
+    return to_string(sum);
+}
+
 class bank_system{
     public:
     // user ID -> A/C Number -> Card Number for savings
-        vector<User*> customers;
+        vector<User*> customers; // can be used to determine number of users
         map<long long, savings_account*> savings_accounts_list;
         map<long long, current_account*> current_accounts_list;
         map<long long, loan_account*> loan_accounts_list;
-        map<string, vector<pair<long long, string>>> user_accounts;
+        // map<long long, account_base*> accounts_list;
+        map<string, vector<pair<long long, string>>> user_accounts; 
+        map<string, User*> id_to_user;
         // user ID -> {A/C number and type}
 
         int customer_counter = 1;
@@ -21,16 +41,35 @@ class bank_system{
     
     // public:
 
+        User* create_user(string name, string email, string phone_number, 
+                        string address, int age){
+            string user_id = get_user_id(name);
+            if (id_to_user.find(user_id) != id_to_user.end()){
+                int suf = 0;
+                string s = (user_id) + "_" + to_string(suf);
+                while(id_to_user.find(s) != id_to_user.end()){
+                    suf++;
+                    s = user_id + "_" + to_string(suf);
+                }
+                user_id = s;
+            }
+
+            User* user = new User(name, email, phone_number, address, age, user_id);
+            customers.push_back(user);
+            id_to_user[user_id] = user;
+            return user;
+        }
+
         void create_savings_account(string name, string email, string phone_number, string address,
-                                    int age, string user_id, double initial_deposit, string date)
+                                    int age, double initial_deposit, User* user, string date)
         {
             if (initial_deposit < 10000) cout << "Can't open Savings account, minimum deposit must be Rs. 10000\n";
             else{
-                string user_id = get_user_id(name);
-                User* user = new User(name, email, phone_number, address, age, user_id);
-                customers.push_back(user);
+                // string user_id = get_user_id(name);
+                // User* user = new User(name, email, phone_number, address, age, user_id);
+                // customers.push_back(user);
                 int acc_number = generate_acc_number();
-
+                string user_id = user->user_id;
                 savings_account* sav_account = new savings_account(acc_number, initial_deposit, user, date);
                 savings_accounts_list[acc_number] = (sav_account);
                 user_accounts[user_id].push_back({acc_number, "Savings"});
@@ -44,15 +83,12 @@ class bank_system{
         }
 
         void create_current_account(string name, string email, string phone_number, string address,
-                                    int age, string user_id, double initial_deposit, string date)
+                                    int age, double initial_deposit, User* user, string date)
         {
             if (initial_deposit >= 100000 && age >= 18){
-                string user_id = get_user_id(name);
-                User* user = new User(name, email, phone_number, address, age, user_id);
-                customers.push_back(user);
 
                 int acc_number = generate_acc_number();
-
+                string user_id = user->user_id;
                 current_account* cur_account = new current_account(acc_number, initial_deposit, user, date);
                 current_accounts_list[acc_number] = (cur_account);
                 user_accounts[user_id].push_back({acc_number, "Current"});
@@ -63,13 +99,13 @@ class bank_system{
         }
 
         void create_loan_account(string name, string email, string phone_number, string address,
-                                    int age, string user_id, double loan_amt, int period, 
-                                    char loan_type, string date){
+                                    int age, double loan_amt, int period, 
+                                    char loan_type, User* user, string date){
             
             // Have an existing current or savings acc
             // age 25, time in years >= 2, total value <= 40% of deposits
             // amount >= 500000
-            // long long user_id = get_user_id(name);
+            string user_id = user->user_id;
             bool has_acc = (user_accounts.find(user_id) != user_accounts.end());
 
             if (loan_amt < 500000 || age < 25 || period < 2 || !(has_acc)){
@@ -77,7 +113,6 @@ class bank_system{
                 cout <<  "Can't open Loan account.\n";
                 return;
             }
-            User* user = new User(name, email, phone_number, address, age, user_id);
             double bal = 0;
             for(auto x : (user_accounts[user_id])){
                 double amt = 
@@ -88,11 +123,9 @@ class bank_system{
                 cout <<  "Can't open Loan account.\n";
                 return;
             }
-            
-            customers.push_back(user);
 
             int acc_number = generate_acc_number();
-
+            
             // loan_account(int acc_num, double amount, char loan_type, User* usr) 
             loan_account* loan_acc = new loan_account(acc_number, loan_amt, loan_type, user, date);
             loan_accounts_list[acc_number] = (loan_acc);    

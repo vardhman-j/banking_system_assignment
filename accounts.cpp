@@ -292,7 +292,7 @@ class loan_account : public account_base {
             cout << "Loan Account Number: " << acc_number;
             cout << "\nLoan Amount: " << rem_loan_amt;
             cout << "\nInterest Rate: " << interest_rate << "%\n";
-            cout << "User ID: " << get_user_id(user->name) << endl;
+            // cout << "User ID: " << get_user_id(user->name) << endl;
         }
 
         void deposit(int installment, string date) {
