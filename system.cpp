@@ -60,8 +60,7 @@ class bank_system{
             return user;
         }
 
-        void create_savings_account(string name, string email, string phone_number, string address,
-                                    int age, double initial_deposit, User* user, string date)
+        void create_savings_account(int age, double initial_deposit, User* user, string date)
         {
             if (initial_deposit < 10000) cout << "Can't open Savings account, minimum deposit must be Rs. 10000\n";
             else{
@@ -77,13 +76,15 @@ class bank_system{
                 cout << "\nNew savings account created:\n";
                 cout << "User ID: " << user_id << '\n';
                 cout << "A/C number: " << acc_number << '\n';
-
+                // sav_account->transactions.push_back({initial_deposit, date})
+                // for(auto x : sav_account->transactions){
+                //     cout << x.first << " " << x.second << '\n';
+                // }
                 sav_account->generate_atm_details();
             }
         }
 
-        void create_current_account(string name, string email, string phone_number, string address,
-                                    int age, double initial_deposit, User* user, string date)
+        void create_current_account(int age, double initial_deposit, User* user, string date)
         {
             if (initial_deposit >= 100000 && age >= 18){
 
@@ -92,30 +93,50 @@ class bank_system{
                 current_account* cur_account = new current_account(acc_number, initial_deposit, user, date);
                 current_accounts_list[acc_number] = (cur_account);
                 user_accounts[user_id].push_back({acc_number, "Current"});
+
+                cout << "\nNew current account created:\n";
+                cout << "User ID: " << user_id << '\n';
+                cout << "A/C number: " << acc_number << '\n';
             }
 
             else cout << "Can't open Current account.\n";
 
         }
 
-        void create_loan_account(string name, string email, string phone_number, string address,
-                                    int age, double loan_amt, int period, 
-                                    char loan_type, User* user, string date){
+        void create_loan_account(int age, double loan_amt, int period, char loan_type, User* user, string date){
             
             // Have an existing current or savings acc
             // age 25, time in years >= 2, total value <= 40% of deposits
             // amount >= 500000
             string user_id = user->user_id;
             bool has_acc = (user_accounts.find(user_id) != user_accounts.end());
-
             if (loan_amt < 500000 || age < 25 || period < 2 || !(has_acc)){
-                cout << has_acc << '\n';
-                cout <<  "Can't open Loan account.\n";
+            // if (age < 25 || period < 2 || !(has_acc)){
+                // cout << has_acc << '\n';
+                if (loan_amt < 500000) cout << "Loan amt must be >= 500000.\n";
+                if (age < 25) cout << "Age must be >= 25.\n";
+                if (period < 2) cout << "Loan period must be >= 2 years.\n";
+                if (!has_acc) cout << "Open a savings or current account before taking a loan.\n";
+                cout <<  "Can't start Loan account.\n";
                 return;
             }
             double bal = 0;
             for(auto x : (user_accounts[user_id])){
-                double amt = 
+                double amt = 0;
+                long long ac_num = x.first;
+            
+                if (x.second == "Savings"){
+                    auto ac = (savings_accounts_list[ac_num]);
+                    string date1 = ac->transactions.back().second;
+                    int diff = ac->get_months(date1, date);
+                    ac->interest(diff);
+                    amt += ac->balance;
+                }
+                else if (x.second == "Current"){
+                    auto ac = (current_accounts_list[ac_num]);
+                    amt += ac->balance;
+                }
+
                 bal += amt;
             }
 
@@ -129,7 +150,8 @@ class bank_system{
             // loan_account(int acc_num, double amount, char loan_type, User* usr) 
             loan_account* loan_acc = new loan_account(acc_number, loan_amt, loan_type, user, date);
             loan_accounts_list[acc_number] = (loan_acc);    
-            user_accounts[user_id].push_back({acc_number, "Loan"});                 
+            user_accounts[user_id].push_back({acc_number, "Loan"});  
+            cout << "Created loan account with:\n Principal Amount: " << loan_amt << "\nPeriod: " << period << '\n';               
     }
 
 

@@ -10,7 +10,7 @@ int valid_date(int d, int m, int y){
     if (d < 0 || m < 0 || d > 31 || m > 12) return 0;
     vector<string> cur_dmy = date_split(cur_date());
     vector<int> t0 = {4, 6, 9, 11};
-
+    
     if (m == 2){
         if (d > 29) return 0;
         if (y%4 && d > 28) return 0;
@@ -26,7 +26,8 @@ int valid_date(int d, int m, int y){
     
     // checking if future date
     int cd = stoi(cur_dmy[0]), cm = stoi(cur_dmy[1]), cy = stoi(cur_dmy[2]);
-
+    cout << d << ' ' << m << ' ' << y << '\n';
+    cout << cd << ' ' << cm << ' ' << cy << '\n';
     if (y > cy) return -1;
     if (y < cy) return 1;
 
@@ -80,7 +81,7 @@ bool check_input(string name, string email, string ph_number, string  address, i
         }
         if (!at_f || !end_f) em_f = 0;
     }
-    if (ph_f && em_f && age_f && name_f && add_f && date_f) return 1;
+    if (ph_f && em_f && age_f && name_f && add_f && date_f == 1) return 1;
     if (!name_f) cout << "Enter non empty name.\n";
     if (!em_f) cout << "Invalid email.\n";
     if(!ph_f) cout << "Invalid Phone Number.\n";
@@ -121,24 +122,24 @@ int main(){
             cout << "\nNew User ID created, User_ID: " << user_id << "\n";
 
             cout << "\n1. Create Savings Account\n2. Create Current Account\n3. Create Loan Account\n4. Exit\n\nEnter choice: ";
-            cin >> acc_type; cout << '\n';
+            cin >> acc_type;
             switch(acc_type){
                 double amount;
                 int accNum;
                 char loan_type;
                 case(1):
                     cout << "\nEnter Initial Deposit: "; cin >> amount; cout << '\n';
-                    bank.create_savings_account(name, email, phone, address, age, amount, new_user, date);
+                    bank.create_savings_account(age, amount, new_user, date);
                     break;
                 case(2):
                     cout << "\nEnter Initial Deposit: "; cin >> amount; cout << '\n';
-                    bank.create_current_account(name, email, phone, address, age, amount, new_user, date);
+                    bank.create_current_account(age, amount, new_user, date);
                     break;
                 case(3):
                     cout << "Enter Loan Amount: "; cin >> amount;
                     int period; cout << "Enter Loan Period (in years): "; cin >> period;
                     cout << "Enter Loan Type (H, C, P, B): "; cin >> loan_type;
-                    bank.create_loan_account(name, email, phone, address, age, amount, period, loan_type, new_user, date);
+                    bank.create_loan_account(age, amount, period, loan_type, new_user, date);
                     break;
                 case(4):
                     cout << "User ID created, no account linked to it exists.\nNote User ID for future use.\n";
@@ -165,6 +166,10 @@ int main(){
                     else{
                         cout << "Personal details of User ID: " << user_id << "\n";
                         bank.id_to_user[user_id]->show_details();
+                        if (bank.user_accounts.size() == 0){
+                            cout << "No accounts linked to this User ID exist.\n";
+                            break;
+                        }
                         cout << "Accounts linked to User ID " << user_id << ":\n";
                         cout << "A/C number       Type\n";
                         for(auto x : bank.user_accounts[user_id]){
@@ -276,19 +281,19 @@ int main(){
                         cout << "\nEnter Initial Deposit: "; cin >> amount;
                         cout << "Enter Date: "; cin >> date;
                         // if ()
-                        bank.create_savings_account(n, e, p, a, ag, amount, user, date);
+                        bank.create_savings_account(ag, amount, user, date);
                     }
                     else if (acc_type == 2){
                         cout << "\nEnter Initial Deposit: "; cin >> amount; cout << '\n';
                         cout << "Enter Date: "; cin >> date;
-                        bank.create_current_account(n, e, p, a, ag, amount, user, date);
+                        bank.create_current_account(ag, amount, user, date);
                     }
                     else if (acc_type == 3){
                         cout << "Enter Loan Amount: "; cin >> amount;
                         cout << "Enter Date: "; cin >> date;
                         int period; cout << "Enter Loan Period (in years): "; cin >> period;
                         cout << "Enter Loan Type (H, C, P, B): "; cin >> loan_type;
-                        bank.create_loan_account(n, e, p, a, ag, amount, period, loan_type, user, date);
+                        bank.create_loan_account(ag, amount, period, loan_type, user, date);
                     }
                     else cout << "Invalid Choice, exiting.";
                 }

@@ -8,7 +8,7 @@ class account_base{
         int acc_number;
         double balance;
         string account_type;
-        vector<vector<string>> transactions;
+        vector<pair<double, string>> transactions;
         // transactions store withdrawal/deposit, amount, date and acc_type
         User* user;
 
@@ -34,21 +34,14 @@ class account_base{
         // virtual void deposit(int amount, string date) = 0;
         // virtual void withdraw(int amount, string date) = 0;
 
-        void addTransaction(vector<string> transaction){
-            transactions.push_back(transaction);
-        }
+        // void addTransaction(vector<string> transaction){
+        //     transactions.push_back(transaction);
+        // }
         
         void print_transactions(){  // Printing Statement
             cout << "Transaction history for A/C number " << acc_number << ":\n";
             for (auto x : transactions){
-                if (x[0] == "+") cout << "Deposited ";
-                else cout << "Withdrew ";
-                cout << x[1] << " on " << x[2];
-
-                if (x[2] == "+") cout << "in ";
-                else cout << "from ";
-
-                cout << x[3];
+                cout << x.first << " " << x.second << '\n';
             }
         }
 
@@ -59,7 +52,8 @@ class account_base{
             string m1 = date_1[1], m2 = date_2[1], y1 = date_1[2],  y2 = date_2[2];
             vector<string> dates = {m1, m2, y1, y2};
             vector<int> num_d(4, 0);
-            for(int x : num_d) cout << x << " ";
+            for(int i = 0; i<4; i++) num_d[i] = stoi(dates[i]);
+            // for(int x : num_d) cout << x << " ";
             int ans = 0;
             if (num_d[3] == num_d[2]) ans = num_d[1] - num_d[0];
             else{
@@ -74,7 +68,6 @@ class account_base{
 
 class savings_account : public account_base{
     private:
-        
         const double interest_rate = 0.06;
         const double min_balance = 10000;
         double NRV = 100000;
@@ -98,7 +91,7 @@ class savings_account : public account_base{
 
         savings_account(int acc_num, double bal, User* usr, string date) : account_base("Savings", acc_num, bal, usr){
             unique_atm_numbers[""] = 0;
-            transactions.push_back({"+", to_string(bal), date, "Savings"});
+            transactions.push_back({bal,  date});
         }
         
         void interest(int months){
@@ -107,20 +100,22 @@ class savings_account : public account_base{
         
         
         void deposit(int amount, string date){
-            if (transactions.size()){
-                int diff = get_months(transactions.back()[1], date);
-                interest(diff);
-            }
+            int diff = get_months(transactions.back().second, date);
+
+            interest(diff);
+            cout << "\nBalance after interest: " << balance << '\n';
+
             balance += amount;
-            transactions.push_back({"+", to_string(amount), date, "Savings"});
+            cout << "\nUpdated Balance: " << balance << '\n';
+            transactions.push_back({amount, date});
         }
 
 
         void withdraw(int amount, string date){
-            if (transactions.size()){
-                int diff = get_months(transactions.back()[1], date);
-                interest(diff);
-            }
+            int fl = 0;
+            
+            int diff = get_months(transactions.back().second, date);
+            interest(diff);
 
             if (amount >= 20000 || amount >= balance){
                 cout << "Transaction rejected, check withdrawal amount and balance.";
@@ -137,13 +132,15 @@ class savings_account : public account_base{
                             cout << "Withdrew only the difference.";
                             daily_withdrawal_value = 50000;
                             monthly_withdrawal_cnt++;
-                            transactions.push_back({"-", to_string(difference), date, "Savings"});
+                            cout << "\nUpdated Balance: " << balance << '\n';
+                            transactions.push_back({-difference, date});
                         }
                         else {    //can withdraw, no limitation on daily limit.
                             balance -= amount;
                             daily_withdrawal_value += amount;
                             monthly_withdrawal_cnt++;
-                            transactions.push_back({"-", to_string(amount), date, "Savings"});
+                            cout << "\nUpdated Balance: " << balance << '\n';
+                            transactions.push_back({-amount, date});
                         }
                     }
 
@@ -156,13 +153,15 @@ class savings_account : public account_base{
                         else monthly_withdrawal_cnt++;
 
                         balance -= amount;
-                        transactions.push_back({"-", to_string(amount), date, "Savings"});
+                        cout << "\nUpdated Balance: " << balance << '\n';
+                        transactions.push_back({-amount, date});
                     }
                 }
                 else{
                     monthly_withdrawal_cnt = 0;
                     balance -= amount;
-                    transactions.push_back({"-", to_string(amount), date, "Savings"});
+                    cout << "\nUpdated Balance: " << balance << '\n';
+                    transactions.push_back({-amount, date});
                 }
 
                 prev_date = current_date;
@@ -211,7 +210,8 @@ class current_account : public account_base {
     
     public:
         current_account(int acc_num, double bal, User* usr, string date) : account_base("Current", acc_num, bal, usr){
-            transactions.push_back({"+", to_string(bal), date, "Current"});
+            monthly_transaction_cnt = 1;
+            transactions.push_back({bal, date});
         }
 
         void display()  {
@@ -224,21 +224,17 @@ class current_account : public account_base {
             balance += (amount);
             balance -= min(500.0, 0.005*amount);
             string month = date_split(date)[1];
-            if (transactions.size()){
-                if (date_split((transactions.back()[2]))[1] == month){
-                    monthly_transaction_cnt++;
-                }
-                else{
-                    string prev_month = date_split((transactions.back()[2]))[1];
-                    if (monthly_transaction_cnt >= 3){
-                        monthly_transaction_cnt = 1;
-                    }
-                    else balance -= 500;
-                }
-            }
+            string prev_month = date_split((transactions.back().second))[1];
             
-            else monthly_transaction_cnt = 1;
-            transactions.push_back({"+", to_string(amount), date, "Current"});
+            if (prev_month == month) monthly_transaction_cnt++;
+            else{
+                if (monthly_transaction_cnt >= 3){
+                    monthly_transaction_cnt = 1;
+                }
+                else balance -= 500;
+            }
+
+            transactions.push_back({amount, date});
         }
             
 
@@ -248,7 +244,7 @@ class current_account : public account_base {
             else{
                 balance -= (amount);
                 balance -= min(500.0, 0.005*amount);
-                transactions.push_back({"-", to_string(amount), date, "Current"});
+                transactions.push_back({-amount, date});
             }
         }
 };
@@ -272,7 +268,7 @@ class loan_account : public account_base {
                     interest_rate = 0.12;
                 else interest_rate = 0.15;
                 
-                transactions.push_back({"-", to_string(amount), date, "Loan"});
+                transactions.push_back({amount, date});
                 base_loan_amount = amount;
                 rem_loan_amt = base_loan_amount;
         }
@@ -284,8 +280,9 @@ class loan_account : public account_base {
         SAVINGS OR CURRENT ACCOUNT EXISTS
         */
 
-        void interest(int months) {
-            rem_loan_amt += rem_loan_amt * pow((1 + interest_rate/2), 2); // compounded half yearly
+        void interest(int months){
+            double int_amt = rem_loan_amt * pow((1 + interest_rate/2), 2); // compounded half yearly 
+            rem_loan_amt += int_amt;
         }
 
         void display() {
@@ -295,22 +292,26 @@ class loan_account : public account_base {
             // cout << "User ID: " << get_user_id(user->name) << endl;
         }
 
-        void deposit(int installment, string date) {
-            if (transactions.size()){
-                int diff = get_months(transactions.back()[1], date);
-                interest(diff/6);
-            }
+        void deposit(int installment, string date){
+            int diff = get_months(transactions.back().second, date);
+            interest(diff/6);
+            
             if (installment > (0.1 * base_loan_amount)){
-                cout << "Installment must be atmost 10% of Base loan amount.\n";
+                cout << "Installment must <= 10% of Base loan amount.\n";
                 return;
             } 
-            rem_loan_amt -= installment;
-            transactions.push_back({"+", to_string(installment), date, "Loan"});
 
-            if (installment >= rem_loan_amt){
+            int fl = (rem_loan_amt >= installment);
+            if (fl){
+                rem_loan_amt -= installment;
+                cout << "Remaining loan amount: " << rem_loan_amt << '\n';
+            }   
+            else{
+                installment = rem_loan_amt;
                 rem_loan_amt = 0;
                 cout << "Loan has been repaid.\n";
             }
+            transactions.push_back({-installment, date});
 
         }
         
